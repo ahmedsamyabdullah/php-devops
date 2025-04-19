@@ -41,3 +41,39 @@ variable "az1" {
 variable "az2" {
   type = string
 }
+#######################################
+
+#### Define CIDR Block of any ip
+variable "any_cidr" {
+  description = "CIDR Block to define any ip add from anywhere"
+  type = string
+}
+
+#######################################
+
+# Define iam role variables
+variable "ec2_role_name" {
+  type = string
+}
+
+variable "ec2_profile_name" {
+  type = string
+}
+
+##########################################
+
+# Define ec2 instances vars
+variable "ami" {
+  description = "aws AMI for three ec2 instances, ubuntu ami"
+  type = string
+}
+
+variable "instance_type" {
+  description = "instance type for ec2 instances"
+  type = string
+}
+
+variable "aws_key" {
+  description = "aws key pair name"
+  type = string
+}
