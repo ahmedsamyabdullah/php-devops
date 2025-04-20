@@ -42,7 +42,7 @@ pipeline{
 
        stage('Push to ECR') {
             when {
-                expression { return false } // Note :::=> Change to `true` when ready
+                expression { return true } // Note :::=> Change to `true` when ready
             }
             steps {
                 script {
