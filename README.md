@@ -105,3 +105,5 @@
     - Step 1: Install the GitHub Plugin in Jenkins.
     - Step 2: Configure Jenkins to Connect with GitHub.
     - Step 3: Set Up GitHub Webhook in GitHub repository.
+
+2. Create Jenkinsfile and attach it to ec2 jenkins.

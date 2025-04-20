@@ -1,0 +1,95 @@
+---
+- name: Setup Jenkins EC2 with all required tools
+  hosts: jenkins
+  become: true
+
+  vars:
+    sonar_scanner_version: "7.1.0.4889"
+    sonar_scanner_url: "https://github.com/SonarSource/sonar-scanner-cli/archive/refs/tags/7.1.0.4889.zip"
+    sonar_install_dir: "/opt/sonar-scanner"
+    sonar_extracted_dir: "sonar-scanner-{{ sonar_scanner_version }}-linux"
+
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install dependencies
+      apt:
+        name:
+          - git
+          - php
+          - php-cli
+          - unzip
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Install Composer globally
+      get_url:
+        url: https://getcomposer.org/installer
+        dest: /tmp/composer-setup.php
+
+    - name: Run Composer installer
+      command: php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+      args:
+        creates: /usr/local/bin/composer
+
+    - name: Install Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Add user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Install AWS CLI v2
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+        unzip -o /tmp/awscliv2.zip -d /tmp
+        /tmp/aws/install
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Create directory for SonarScanner
+      file:
+        path: "{{ sonar_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Download Sonar Scanner CLI
+      get_url:
+        url: "{{ sonar_scanner_url }}"
+        dest: "/tmp/{{ sonar_extracted_dir }}.zip" 
+
+    - name: Unzip Sonar Scanner
+      unarchive:
+        src: "/tmp/{{ sonar_extracted_dir }}.zip"
+        dest: "{{ sonar_install_dir }}"
+        remote_src: yes
+
+
+    - name: Create symlink to sonar-scanner in /usr/local/bin
+      file:
+        src: "{{ sonar_install_dir }}/{{ sonar_extracted_dir }}/bin/sonar-scanner"
+        dest: /usr/local/bin/sonar-scanner
+        state: link
+        force: yes
