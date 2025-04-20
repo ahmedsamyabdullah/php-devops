@@ -1,4 +1,4 @@
-FROM php:8.4-apache-alpine
+FROM php:8.3-apache
 RUN apt-get update && apt-get upgrade -y && apt-get clean
 # Copy app files to the container
 COPY . /var/www/html/
