@@ -8,13 +8,6 @@ pipeline{
         SONARQUBE_SERVER = "SonarQube"
     }
     stages{
- 
-
-        stage('Install Dependencies') {
-            steps {
-                sh 'composer install'
-            }
-        }
 
         stage('Unit Tests') {
             steps {
