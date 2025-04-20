@@ -1,0 +1,43 @@
+---
+- name: Install SonarScanner for Jenkins
+  hosts: jenkins
+  become: true
+
+  tasks:
+    - name: Install unzip
+      apt:
+        name: unzip
+        state: present
+        update_cache: yes
+
+    - name: Download SonarScanner CLI
+      get_url:
+        url: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+        dest: /tmp/sonar-scanner.zip
+        mode: '0644'
+
+    - name: Unzip SonarScanner CLI
+      unarchive:
+        src: /tmp/sonar-scanner.zip
+        dest: /opt/
+        remote_src: yes
+
+    - name: Rename sonar-scanner directory
+      command: mv /opt/sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
+      args:
+        creates: /opt/sonar-scanner
+
+    - name: Create symlink to /usr/local/bin
+      file:
+        src: /opt/sonar-scanner/bin/sonar-scanner
+        dest: /usr/local/bin/sonar-scanner
+        state: link
+        force: yes
+
+    - name: Ensure sonar-scanner path is in jenkins user .bashrc
+      lineinfile:
+        path: /var/lib/jenkins/.bashrc
+        line: 'export PATH=$PATH:/opt/sonar-scanner/bin'
+        insertafter: EOF
+        state: present
+ 

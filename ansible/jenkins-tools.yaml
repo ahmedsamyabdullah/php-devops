@@ -2,13 +2,6 @@
 - name: Setup Jenkins EC2 with all required tools
   hosts: jenkins
   become: true
-
-  vars:
-    sonar_scanner_version: "7.1.0.4889"
-    sonar_scanner_url: "https://github.com/SonarSource/sonar-scanner-cli/archive/refs/tags/7.1.0.4889.zip"
-    sonar_install_dir: "/opt/sonar-scanner"
-    sonar_extracted_dir: "sonar-scanner-{{ sonar_scanner_version }}-linux"
-
   tasks:
 
     - name: Update apt cache
@@ -69,27 +62,4 @@
       args:
         creates: /usr/local/bin/aws
 
-    - name: Create directory for SonarScanner
-      file:
-        path: "{{ sonar_install_dir }}"
-        state: directory
-        mode: '0755'
-
-    - name: Download Sonar Scanner CLI
-      get_url:
-        url: "{{ sonar_scanner_url }}"
-        dest: "/tmp/{{ sonar_extracted_dir }}.zip" 
-
-    - name: Unzip Sonar Scanner
-      unarchive:
-        src: "/tmp/{{ sonar_extracted_dir }}.zip"
-        dest: "{{ sonar_install_dir }}"
-        remote_src: yes
-
-
-    - name: Create symlink to sonar-scanner in /usr/local/bin
-      file:
-        src: "{{ sonar_install_dir }}/{{ sonar_extracted_dir }}/bin/sonar-scanner"
-        dest: /usr/local/bin/sonar-scanner
-        state: link
-        force: yes
+   
