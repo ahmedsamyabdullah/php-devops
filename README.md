@@ -72,11 +72,11 @@
   5. vault.yaml
     - Ansible Playbook to install hashicorp vault on ubunt ec2.
   6. jenkins-vault.yaml
-    - What This Playbook Does:
-      - Enables AppRole auth method in Vault.
-      - Creates a policy for Jenkins to read secrets.
-      - Creates an AppRole role for Jenkins.
-      - Retrieves the Role ID and Secret ID.
+       - What This Playbook Does:
+          - Enables AppRole auth method in Vault.
+          - Creates a policy for Jenkins to read secrets.
+          - Creates an AppRole role for Jenkins.
+          - Retrieves the Role ID and Secret ID.
   7. vault-vars.yaml
     - Encrypted file by ansible-vault.
 
