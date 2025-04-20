@@ -77,3 +77,17 @@ variable "aws_key" {
   description = "aws key pair name"
   type = string
 }
+
+###############################################
+# RDS PostgreSql vars
+variable "db_username" {
+  description = "DB username"
+  type = string
+  sensitive = true
+}
+
+variable "db_pass" {
+  description = "DB user password"
+  type = string
+  sensitive = true
+}

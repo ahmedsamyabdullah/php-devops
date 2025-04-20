@@ -1,0 +1,94 @@
+- name: Install and configure SonarQube on Ubuntu
+  hosts: sonarqube
+  become: yes
+  vars:
+    sonarqube_version: "25.4.0.105899"  # Latest version 4/2025
+    sonarqube_user: "sonarqube"
+    sonarqube_group: "sonarqube"
+    sonarqube_dir: "/opt/sonarqube"
+  tasks:
+
+    - name: Update APT packages
+      apt:
+        update_cache: yes
+
+    - name: Install Java 17
+      apt:
+        name: openjdk-17-jdk
+        state: present
+
+    - name: Install required packages
+      apt:
+        name:
+          - unzip
+          - wget
+        state: present
+
+    - name: Create sonar user
+      user:
+        name: "{{ sonarqube_user }}"
+        shell: /bin/bash
+        system: yes
+        create_home: yes
+
+    - name: Download SonarQube
+      get_url:
+        url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonarqube_version }}.zip"
+        dest: "/tmp/sonarqube.zip"
+
+    - name: Unzip SonarQube
+      unarchive:
+        src: "/tmp/sonarqube.zip"
+        dest: "/opt"
+        remote_src: yes
+
+    - name: Rename SonarQube directory
+      command: mv /opt/sonarqube-{{ sonarqube_version }} {{ sonarqube_dir }}
+      args:
+        creates: "{{ sonarqube_dir }}"
+
+    - name: Change ownership
+      file:
+        path: "{{ sonarqube_dir }}"
+        state: directory
+        recurse: yes
+        owner: "{{ sonarqube_user }}"
+        group: "{{ sonarqube_group }}"
+
+    - name: Create systemd service for SonarQube
+      copy:
+        dest: /etc/systemd/system/sonarqube.service
+        content: |
+          [Unit]
+          Description=SonarQube service
+          After=network.target
+
+          [Service]
+          Type=forking
+
+          ExecStart={{ sonarqube_dir }}/bin/linux-x86-64/sonar.sh start
+          ExecStop={{ sonarqube_dir }}/bin/linux-x86-64/sonar.sh stop
+
+          User={{ sonarqube_user }}
+          Group={{ sonarqube_group }}
+          Restart=always
+          LimitNOFILE=65536
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start SonarQube
+      systemd:
+        name: sonarqube
+        enabled: yes
+        state: started
+
+    - name: Wait for SonarQube to start on port 9000
+      wait_for:
+        port: 9000
+        state: started
+        timeout: 60

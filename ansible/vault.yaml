@@ -1,0 +1,41 @@
+- name: Install Vault on Ubuntu EC2
+  hosts: vault
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - software-properties-common
+        - curl
+        - gnupg
+
+    - name: Add HashiCorp GPG key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+
+    - name: Add HashiCorp repo
+      apt_repository:
+        repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+        filename: hashicorp
+
+    - name: Update apt cache after repo added
+      apt:
+        update_cache: yes
+
+    - name: Install Vault
+      apt:
+        name: vault
+        state: present
+        
+    - name: Start and enable Vault service
+      ansible.builtin.systemd:
+        name: vault
+        enabled: yes
+        state: started

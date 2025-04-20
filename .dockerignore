@@ -1,0 +1,7 @@
+terraform/
+ansible/
+*.tf
+*.yml
+*.md
+*.git
+*.yaml

@@ -1,0 +1,71 @@
+---
+- name: Configure Vault for Jenkins access
+  hosts: vault
+  become: yes
+  vars_files:
+    - vault-vars.yaml
+  vars:
+    vault_addr: "http://127.0.0.1:8200"
+    # vault_token: "{{ vault_root_token }}"
+    jenkins_policy_name: "jenkins-policy"
+    jenkins_secret_path: "secret/data/jenkins/db-creds"
+    jenkins_kv_path: "secret/jenkins/db-creds"
+  tasks:
+
+    - name: Enable AppRole auth method
+      shell: vault auth enable approle
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_TOKEN: "{{ vault_token }}"
+      register: result
+      failed_when: "'path is already in use' not in result.stderr and result.rc != 0"
+
+    - name: Write Jenkins policy to file
+      copy:
+        dest: /tmp/jenkins-policy.hcl
+        content: |
+          path "secret/data/jenkins/*" {
+             capabilities = ["create", "update", "read", "list"]
+          }
+
+    - name: Create Jenkins policy in Vault
+      shell: vault policy write {{ jenkins_policy_name }} /tmp/jenkins-policy.hcl
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_TOKEN: "{{ vault_token }}"
+
+    - name: Create AppRole for Jenkins
+      shell: |
+        vault write auth/approle/role/jenkins-role \
+          token_policies="{{ jenkins_policy_name }}" \
+          token_ttl=1h \
+          token_max_ttl=4h
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_TOKEN: "{{ vault_token }}"
+
+    - name: Get Jenkins Role ID
+      shell: vault read -field=role_id auth/approle/role/jenkins-role/role-id
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_TOKEN: "{{ vault_token }}"
+      register: role_id_result
+
+    - name: Get Jenkins Secret ID
+      shell: vault write -f -field=secret_id auth/approle/role/jenkins-role/secret-id
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_TOKEN: "{{ vault_token }}"
+      register: secret_id_result
+
+    - name: Print Jenkins Role ID and Secret ID
+      debug:
+        msg:
+          - "Jenkins Role ID: {{ role_id_result.stdout }}"
+          - "Jenkins Secret ID: {{ secret_id_result.stdout }}"
+
+    - name: Write test secret for Jenkins
+      shell: vault kv put {{ jenkins_kv_path }} username="{{ jenkins_username }}" password="{{ jenkins_password }}"
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_TOKEN: "{{ vault_token }}"

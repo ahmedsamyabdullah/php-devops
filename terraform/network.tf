@@ -90,6 +90,15 @@ resource "aws_security_group" "main"{
   } 
 }
 
+resource "aws_security_group_rule" "postqres" {
+  type              = "ingress"
+  from_port         = 5432
+  to_port           = 5432
+  protocol          = "tcp"
+  cidr_blocks       = [var.any_cidr]
+  security_group_id = aws_security_group.main.id
+}
+
 #########################################
 # Note:=> We Will create 4-subnets = 2 public & 2 Private
 

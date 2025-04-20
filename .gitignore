@@ -15,4 +15,6 @@ terraform.tfvars.json
 
 # Ignore Terraform plan files
 *.tfplan
-jenkins-key.pem
+
+# Ignoe ansible vault
+vault-vars.yaml
