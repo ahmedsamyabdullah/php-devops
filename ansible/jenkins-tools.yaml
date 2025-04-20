@@ -47,6 +47,12 @@
         name: docker-ce
         state: present
         update_cache: yes
+        
+    - name: Ensure Docker service is started and enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: true
 
     - name: Add user to docker group
       user:
