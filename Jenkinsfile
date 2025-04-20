@@ -1,6 +1,6 @@
 pipeline{
     agent any
-    
+
     environment {
         AWS_REGION = "us-east-2"
         DOCKER_IMAGE = "php-devops"
@@ -8,12 +8,7 @@ pipeline{
         SONARQUBE_SERVER = "SonarQube"
     }
     stages{
-
-       stage('Checkout') {
-            steps {
-                git 'https://github.com/ahmedsamyabdullah/php-devops.git'
-            }
-        }
+ 
 
         stage('Install Dependencies') {
             steps {
