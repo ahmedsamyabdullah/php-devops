@@ -1,9 +1,6 @@
 pipeline{
     agent any
-
-    tools{
-        sonarQube 'SonarQube'
-    }
+    
     environment {
         AWS_REGION = "us-east-2"
         DOCKER_IMAGE = "php-devops"
