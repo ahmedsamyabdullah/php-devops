@@ -45,21 +45,18 @@ pipeline{
        stage('Vault Setup') {
             steps {
                 script {
-                    withVault(credentialsId: 'jenkins-policy-vault') {
-                        def awsCredentials = vault(
-                            path: "${env.VAULT_SECRET_PATH}",
-                            secretValues: [
-                                [path: 'aws_credentials', secretValues: [
-                                    [envVar: 'AWS_ACCESS_KEY_ID', key: 'aws_access_key'],
-                                    [envVar: 'AWS_SECRET_ACCESS_KEY', key: 'aws_secret_key']
-                                ]]
-                            ]
-                        )
+                    
+                    withVault([vaultSecrets: [[path: 'secret/aws_credentials', secretValues: [
+                        [envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'aws_access_key'],
+                        [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
+                    ]]], credentialsId: 'jenkins-policy-vault']) {
                         echo "AWS Access Key Loaded: ${AWS_ACCESS_KEY_ID}"
+                        echo "AWS Secret Key Loaded: ${AWS_SECRET_ACCESS_KEY}"
                     }
                 }
             }
         }
+
 
        stage('Push to ECR') {
             when {
