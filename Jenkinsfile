@@ -6,17 +6,10 @@ pipeline{
         DOCKER_IMAGE = "php-devops"
         ECR_REPO = "646304591001.dkr.ecr.us-east-2.amazonaws.com/samy-ecr"
         SONARQUBE_SERVER = "SonarQube"
-        VAULT_SECRET = credentials('vault-token')
         VAULT_CREDENTIALS_ID = 'vault-token'
         AWS_CREDS_PATH = 'secret/aws_credentials'
     }
     stages{
-
-        // stage("Clean WS"){
-        //     steps{
-        //         cleanWs()
-        //     }
-        // }
 
         stage('Unit Tests') {
             steps {
@@ -50,8 +43,8 @@ pipeline{
         }
 
        stage('Get AWS Credentials from Vault') {
-            steps {
-                script {
+        steps {
+          script {
                     // Read credentials from Vault
                     def secrets = [
                         [$class: 'VaultSecret', path: "${AWS_CREDS_PATH}", secretValues: [
@@ -59,15 +52,19 @@ pipeline{
                             [$class: 'VaultSecretValue', envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
                         ]]
                     ]
+
+                    echo "Retrieving AWS credentials from Vault at ${AWS_CREDS_PATH}..."
                     
                     // Wrap step with Vault secrets
                     wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-                        // Credentials are now available as env vars
-                        echo "Retrieved AWS credentials from Vault"
+                        echo "AWS credentials are now available as environment variables."
+                        // Optional: Display the credentials to verify
+                        echo "AWS Access Key: $AWS_ACCESS_KEY_ID"
                     }
                 }
-            }
         }
+       }
+
 
        stage('Push to ECR') {
             when {
