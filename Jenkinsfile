@@ -63,7 +63,7 @@ pipeline {
                     echo "Setting up kubeconfig..."
                     aws eks update-kubeconfig --region $AWS_REGION --name eks
                     echo "Deploying using Helm..."
-                    helm upgrade --install php-app ./helm \
+                    helm upgrade --install php-devops ./helm \
                             --set image.repository=$ECR_REPO \
                             --set image.tag=latest
                     '''
