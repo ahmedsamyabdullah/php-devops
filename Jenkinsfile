@@ -61,7 +61,12 @@ pipeline{
        stage('Push to ECR') {
             steps {
                 script {
-                    withEnv(["AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}", "AWS_REGION=${AWS_REGION}"]) {
+                     
+                    withEnv([
+                        "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}",
+                        "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}",
+                        "AWS_REGION=${AWS_REGION}"
+                    ]) {
                         sh '''
                         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
                         docker tag $DOCKER_IMAGE:latest $ECR_REPO:latest
