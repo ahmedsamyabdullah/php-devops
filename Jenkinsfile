@@ -43,32 +43,29 @@ pipeline{
         }
 
         stage('Vault Setup') {
-            steps {
-                script {
-                    
-                    withVault([vaultSecrets: [[path: 'aws_credentials', secretValues: [
-                        [envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'aws_access_key'],
-                        [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
-                    ]]]]) {
-                        echo "AWS Access Key Loaded: ${AWS_ACCESS_KEY_ID}"
-                        echo "AWS Secret Key Loaded: ${AWS_SECRET_ACCESS_KEY}"
+                    steps {
+                        script {
+                            withVault([vaultSecrets: [[path: 'secret/aws_credentials', secretValues: [
+                                [envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'aws_access_key'],
+                                [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
+                            ]]]]) {
+                               
+                        }
                     }
-                }
-            }
         }
 
 
+
        stage('Push to ECR') {
-            when {
-                expression { return true } // Note :::=> Change to `true` when ready
-            }
             steps {
                 script {
-                    sh '''
-                    aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
-                    docker tag $DOCKER_IMAGE:latest  $ECR_REPO:latest
-                    docker push $ECR_REPO:latest
-                    '''
+                    withEnv(["AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}", "AWS_REGION=${AWS_REGION}"]) {
+                        sh '''
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+                        docker tag $DOCKER_IMAGE:latest $ECR_REPO:latest
+                        docker push $ECR_REPO:latest
+                        '''
+                    }
                 }
             }
         }
@@ -78,5 +75,6 @@ pipeline{
         always{
             cleanWs()
         }
+    }
     }
 }
