@@ -41,19 +41,19 @@ pipeline{
                 }
             }
         }
-
-       stage('Get AWS Credentials from Vault') {
-        steps {
-          script {
+        
+        stage('Get AWS Credentials from Vault') {
+            steps {
+                script {
                     // Read credentials from Vault
                     def secrets = [
-                        [$class: 'VaultSecret', path: "${AWS_CREDS_PATH}", secretValues: [
+                        [$class: 'VaultSecret', path: "secret/aws_credentials", secretValues: [
                             [$class: 'VaultSecretValue', envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'aws_access_key'],
                             [$class: 'VaultSecretValue', envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
                         ]]
                     ]
 
-                    echo "Retrieving AWS credentials from Vault at ${AWS_CREDS_PATH}..."
+                    echo "Retrieving AWS credentials from Vault at secret/aws_credentials..."
                     
                     // Wrap step with Vault secrets
                     wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
@@ -62,8 +62,9 @@ pipeline{
                         echo "AWS Access Key: $AWS_ACCESS_KEY_ID"
                     }
                 }
+            }
         }
-       }
+
 
 
        stage('Push to ECR') {
