@@ -41,9 +41,9 @@ pipeline {
             }
         }
 
-        stage('Push to ECR') {
+        stage('Configure VAULT & Push to ECR') {
             steps {
-                withVault([
+                withVault(
                     vaultSecrets: [[
                         path: "${VAULT_SECRET_PATH}",
                         secretValues: [
@@ -51,11 +51,12 @@ pipeline {
                             [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
                         ]
                     ]],
-                    vaultUrl: 'http://18.226.93.216:8200', 
-                    vaultCredentialId: "${VAULT_CREDENTIALS_ID}"
-                ]) {
+                    
+                ) {
                     sh '''
                     echo "Logging in to ECR..."
+                    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
                     docker tag $DOCKER_IMAGE:latest $ECR_REPO:latest
                     docker push $ECR_REPO:latest
