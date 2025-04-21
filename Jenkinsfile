@@ -11,12 +11,12 @@ pipeline{
         AWS_CREDS_PATH = 'secret/aws_credentials'
     }
     stages{
-        
-        stage("Clean WS"){
-            steps{
-                cleanWs()
-            }
-        }
+
+        // stage("Clean WS"){
+        //     steps{
+        //         cleanWs()
+        //     }
+        // }
 
         stage('Unit Tests') {
             steps {
