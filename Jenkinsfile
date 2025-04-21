@@ -60,16 +60,49 @@ pipeline {
                     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
                     docker tag $DOCKER_IMAGE:latest $ECR_REPO:latest
                     docker push $ECR_REPO:latest
-                    echo "Setting up kubeconfig..."
-                    aws eks update-kubeconfig --region $AWS_REGION --name eks
-                    echo "Deploying using Helm..."
-                    helm upgrade --install php-devops ./helm \
-                            --set image.repository=$ECR_REPO \
-                            --set image.tag=latest
+                    
                     '''
                 }
             }
         }
+
+        stage('Deploy to Dev') {
+            steps {
+                sh '''
+                aws eks update-kubeconfig --region $AWS_REGION --name eks
+                helm upgrade --install php-devops-dev ./helm \
+                    --namespace dev \
+                    --create-namespace \
+                    -f ./helm/values-dev.yaml
+                '''
+            }
+        }
+
+        stage('Deploy to Staging') {
+            steps {
+                input message: "Approve deployment to Staging?"
+                sh '''
+                helm upgrade --install php-devops-staging ./helm \
+                    --namespace staging \
+                    --create-namespace \
+                    -f ./helm/values-staging.yaml
+                '''
+            }
+        }
+
+        stage('Deploy to Prod') {
+            steps {
+                input message: "Approve deployment to Production?"
+                sh '''
+                helm upgrade --install php-devops-prod ./helm \
+                    --namespace prod \
+                    --create-namespace \
+                    -f ./helm/values-prod.yaml
+                '''
+            }
+        }
+        
+
 
 
     }
@@ -80,3 +113,13 @@ pipeline {
         }
     }
 }
+
+
+
+// After docker push add ---
+// echo "Setting up kubeconfig..."
+//                     aws eks update-kubeconfig --region $AWS_REGION --name eks
+//                     echo "Deploying using Helm..."
+//                     helm upgrade --install php-devops ./helm \
+//                             --set image.repository=$ECR_REPO \
+//                             --set image.tag=latest

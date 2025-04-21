@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: php-devops
 spec:
-  replicas: 2
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: php-devops
