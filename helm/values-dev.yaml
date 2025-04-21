@@ -5,3 +5,9 @@ image:
 service:
   type: ClusterIP
 replicaCount: 1
+rbac:
+  create: true
+  serviceAccountName: php-devops-sa
+
+networkPolicy:
+  enabled: true

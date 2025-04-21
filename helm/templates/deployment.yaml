@@ -12,6 +12,7 @@ spec:
       labels:
         app: php-devops
     spec:
+      serviceAccountName: {{ .Values.rbac.serviceAccountName }}
       containers:
       - name: php-devops
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"  

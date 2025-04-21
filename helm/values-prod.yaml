@@ -5,3 +5,9 @@ image:
 service:
   type: LoadBalancer
 replicaCount: 3
+rbac:
+  create: true
+  serviceAccountName: php-devops-sa
+
+networkPolicy:
+  enabled: true
