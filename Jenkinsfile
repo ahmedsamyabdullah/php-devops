@@ -42,18 +42,21 @@ pipeline{
             }
         }
 
-        stage('Vault Setup') {
+       stage('Vault Setup') {
             steps {
                 script {
-                    
-                    def awsCredentials = vault(
-                        path: "${env.VAULT_SECRET_PATH}",
-                        secretValues: [
-                            [path: 'aws_credentials', secretValues: [[envVar: 'AWS_ACCESS_KEY_ID', key: 'aws_access_key'], [envVar: 'AWS_SECRET_ACCESS_KEY', key: 'aws_secret_key']]]
-                        ]
-                    )
-                    echo "AWS Access Key: ${AWS_ACCESS_KEY_ID}"
-                    echo "AWS Secret Key: ${AWS_SECRET_ACCESS_KEY}"
+                    withVault(credentialsId: 'jenkins-policy-vault') {
+                        def awsCredentials = vault(
+                            path: "${env.VAULT_SECRET_PATH}",
+                            secretValues: [
+                                [path: 'aws_credentials', secretValues: [
+                                    [envVar: 'AWS_ACCESS_KEY_ID', key: 'aws_access_key'],
+                                    [envVar: 'AWS_SECRET_ACCESS_KEY', key: 'aws_secret_key']
+                                ]]
+                            ]
+                        )
+                        echo "AWS Access Key Loaded: ${AWS_ACCESS_KEY_ID}"
+                    }
                 }
             }
         }
