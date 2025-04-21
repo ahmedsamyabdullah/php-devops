@@ -1,0 +1,4 @@
+image:
+  repository: 646304591001.dkr.ecr.us-east-2.amazonaws.com/samy-ecr
+  tag: latest
+  pullPolicy: IfNotPresent

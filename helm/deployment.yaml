@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-devops
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: php-devops
+  template:
+    metadata:
+      labels:
+        app: php-devops
+    spec:
+      containers:
+      - name: php-devops
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: php-app
+description: A simple PHP app
+version: 0.1.0

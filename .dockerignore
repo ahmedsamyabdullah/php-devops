@@ -1,5 +1,6 @@
 terraform/
 ansible/
+helm/
 *.tf
 *.yml
 *.md

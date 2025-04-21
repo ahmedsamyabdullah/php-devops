@@ -1,0 +1,44 @@
+---
+- name: Install Helm and copy kubeconfig on Jenkins EC2
+  hosts: jenkins
+  become: yes
+
+  vars:
+    helm_version: "v3.14.4"
+    kubeconfig_local_path: "./kubeconfig"   
+    kubeconfig_remote_path: "/home/ubuntu/.kube/config"
+
+  tasks:
+    - name: Ensure dependencies are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - curl
+        - tar
+
+    - name: Download Helm binary
+      get_url:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
+        dest: "/tmp/helm.tar.gz"
+        mode: '0644'
+
+    - name: Extract Helm
+      unarchive:
+        src: "/tmp/helm.tar.gz"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Move Helm binary
+      command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
+
+    - name: Create .kube directory if it doesn't exist
+      file:
+        path: "/home/ubuntu/.kube"
+        state: directory
+        mode: '0700'
+        owner: ubuntu
+        group: ubuntu
+
+ 

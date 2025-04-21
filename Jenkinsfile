@@ -60,10 +60,17 @@ pipeline {
                     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
                     docker tag $DOCKER_IMAGE:latest $ECR_REPO:latest
                     docker push $ECR_REPO:latest
+                    echo "Setting up kubeconfig..."
+                    aws eks update-kubeconfig --region $AWS_REGION --name eks
+                    echo "Deploying using Helm..."
+                    helm upgrade --install php-app ./helm \
+                            --set image.repository=$ECR_REPO \
+                            --set image.tag=latest
                     '''
                 }
             }
         }
+
 
     }
 
