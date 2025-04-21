@@ -48,11 +48,11 @@ pipeline{
                             withVault([vaultSecrets: [[path: 'secret/aws_credentials', secretValues: [
                                 [envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'aws_access_key'],
                                 [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
-                            ]]]]) {
+                            ]]]]) 
                                
                         }
                     }
-        }
+       }
 
 
 
@@ -70,11 +70,11 @@ pipeline{
             }
         }
 
-    }
+
     post{
         always{
             cleanWs()
         }
     }
-    }
+  }      
 }
