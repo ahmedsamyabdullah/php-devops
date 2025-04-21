@@ -7,7 +7,7 @@ pipeline{
         ECR_REPO = "646304591001.dkr.ecr.us-east-2.amazonaws.com/samy-ecr"
         SONARQUBE_SERVER = "SonarQube"
         VAULT_CREDENTIALS_ID = 'jenkins-policy-vault'
-        VAULT_SECRET_PATH = 'secret/aws_credentials'
+        VAULT_SECRET_PATH = 'aws_credentials'
     }
     stages{
 
@@ -42,14 +42,14 @@ pipeline{
             }
         }
 
-       stage('Vault Setup') {
+        stage('Vault Setup') {
             steps {
                 script {
                     
                     withVault([vaultSecrets: [[path: 'secret/aws_credentials', secretValues: [
                         [envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'aws_access_key'],
                         [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
-                    ]]], credentialsId: 'jenkins-policy-vault']) {
+                    ]]]]) {
                         echo "AWS Access Key Loaded: ${AWS_ACCESS_KEY_ID}"
                         echo "AWS Secret Key Loaded: ${AWS_SECRET_ACCESS_KEY}"
                     }
