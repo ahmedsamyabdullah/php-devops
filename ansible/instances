@@ -1,5 +1,5 @@
 [jenkins]
-3.15.141.176 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/php-devops.pem
+3.15.141.176 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/php-devops.pem ansible_python_interpreter=/home/ubuntu/.venv/bin/python
 [sonarqube]
 3.144.95.172 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/php-devops.pem
 [vault]
