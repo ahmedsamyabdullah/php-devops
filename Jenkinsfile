@@ -6,8 +6,8 @@ pipeline{
         DOCKER_IMAGE = "php-devops"
         ECR_REPO = "646304591001.dkr.ecr.us-east-2.amazonaws.com/samy-ecr"
         SONARQUBE_SERVER = "SonarQube"
-        VAULT_CREDENTIALS_ID = 'vault-token'
-        AWS_CREDS_PATH = 'secret/aws_credentials'
+        VAULT_CREDENTIALS_ID = 'jenkins-policy-vault'
+        VAULT_SECRET_PATH = 'secret/aws_credentials'
     }
     stages{
 
@@ -41,31 +41,22 @@ pipeline{
                 }
             }
         }
-        
-        stage('Get AWS Credentials from Vault') {
+
+        stage('Vault Setup') {
             steps {
                 script {
-                    // Read credentials from Vault
-                    def secrets = [
-                        [$class: 'VaultSecret', path: "secret/aws_credentials", secretValues: [
-                            [$class: 'VaultSecretValue', envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'aws_access_key'],
-                            [$class: 'VaultSecretValue', envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'aws_secret_key']
-                        ]]
-                    ]
-
-                    echo "Retrieving AWS credentials from Vault at secret/aws_credentials..."
                     
-                    // Wrap step with Vault secrets
-                    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-                        echo "AWS credentials are now available as environment variables."
-                        // Optional: Display the credentials to verify
-                        echo "AWS Access Key: $AWS_ACCESS_KEY_ID"
-                    }
+                    def awsCredentials = vault(
+                        path: "${env.VAULT_SECRET_PATH}",
+                        secretValues: [
+                            [path: 'aws_credentials', secretValues: [[envVar: 'AWS_ACCESS_KEY_ID', key: 'aws_access_key'], [envVar: 'AWS_SECRET_ACCESS_KEY', key: 'aws_secret_key']]]
+                        ]
+                    )
+                    echo "AWS Access Key: ${AWS_ACCESS_KEY_ID}"
+                    echo "AWS Secret Key: ${AWS_SECRET_ACCESS_KEY}"
                 }
             }
         }
-
-
 
        stage('Push to ECR') {
             when {
