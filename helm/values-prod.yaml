@@ -10,7 +10,7 @@ rbac:
   serviceAccountName: php-devops-sa
 
 networkPolicy:
-  enabled: true
+  enabled: false 
 
 autoscaling:
   enabled: true
