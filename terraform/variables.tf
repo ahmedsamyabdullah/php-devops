@@ -91,3 +91,13 @@ variable "db_pass" {
   type = string
   sensitive = true
 }
+
+###################################################
+#####    S3 & DynamoDB
+
+variable "bucket_name" {
+  description = "S3 bucket name for main_bucket to store terraform.tfstate file remotely"
+  type = string
+}
+
+ 

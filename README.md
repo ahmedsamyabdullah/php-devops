@@ -1,109 +1,136 @@
 # Project : php-devops
 ## BY : Ahmed Samy
 ***
-## I Created Terraform dir that contain  files infrastructure :
-1. variables.tf
-  - Define variables that we using in terraform files resources.
-  - This file not contain the default values.
-
-2. terraform.tfvars
-  - Contained Values of Variables that defines in variables.tf
-
-3. provider.tf 
-  - Define AWS provider.
-  - Set profile (php-devops) that contains my aws_credentials
-  - Define region = us-east-2
-
-4. network.tf
-  - VPC 
-  - IGW
-  - Security Group
-  - Subnets (Public & Private)
-  - EIP
-  - NAT
-  - Route Table
-  - RT associate
-
-5. iam-roles.tf
-  - iam role for ec2
-  - Role policies (S3,ECR,EKS,SSM for vault)
-  - Roles for eks
-  - Roles for worker node
-
-6. ec2.tf
-  - Three ec2 instances:
-  - jenkins ec2
-  - sonarqube ec2
-  - vault ec2
-
-7. eks.tf
-  - EKS (Elastic K8S Service) control node on AWS 
-
-8. worker.tf
-  - Worker node on AWS to join to eks master.
-
-
-
-
-
-* After finishing we run commands : 
-- ```
-    terraform init
-  ```
-<h5> To initialize provider & Backend </h5>
-
-- ```
-    terraform plan
-  ```
-
-- ```
-    terraform apply
-  ```
+## DevOps CI/CD Pipeline for Microservices-Based E-Commerce Application
+### Setup Instructions ....
 ***
-## Ansible dir that contains files :
-  1. ansible.cfg
-  2. instances
-    - It is inventory file that contains informations for three ec2 instances (jenkins, sonarqube, vault).
-    - It is a static inventory manually.
-  3. jenkins.yaml
-    - Ansible Playboot to install jenkins on ubuntu ec2.
-  4. sonarqube.yaml
-    - Ansible Playbook to install sonarqube on ubunt ec2.
-  5. vault.yaml
-    - Ansible Playbook to install hashicorp vault on ubunt ec2.
-  6. jenkins-vault.yaml
-       - What This Playbook Does:
-          - Enables AppRole auth method in Vault.
-          - Creates a policy for Jenkins to read secrets.
-          - Creates an AppRole role for Jenkins.
-          - Retrieves the Role ID and Secret ID.
-  7. vault-vars.yaml
-    - Encrypted file by ansible-vault.
-
-* Then run commands:
-
-- ```
-  ansible-playbook -i ./instances jenkins.yaml
-  ```
-
-- ```
-  ansible-playbook -i ./instances sonarqube.yaml
-  ```
-
-- ```
-  ansible-playbook -i ./instances vault.yaml
-  ```
-
-- ```
-  ansible-playbook -i ./instances jenkins-vault.yaml --ask-vault-pass
-  ```
+## Prerequisites
+1. Terraform - For infrastructure provisioning.
+2. AWS CLI - For interacting with AWS resources.
+3. Docker - For building containerized applications.
+4. Ansible - For configuration management and automation.
+5. Jenkins - For the CI/CD pipeline.
+6. Helm - For managing Kubernetes applications.
+7. kubectl - To interact with Kubernetes clusters.
+8. git & Github repo.
+***
+* AWS Configuration (Access key & secret key) using php-devop profile
+  - ```
+      aws configure --profile php-devops
+    ```
+  - enter aws_access_key 
+  - enter aws_secret_key
+  - region "us-east-2"
+  - format json
+***
+* Terraform infrastructure
+  1. After creating terraform resources (provider,network,ec2,ecr,eks,iam-roles,s3) run commands :
+      - to init aws provider with region (us-east-2) <br>
+        ```
+         terraform init
+        ```
+      <br>
+      - to preview what terraform will do <br>
+       ```
+       terraform plan
+       ```
+       <br>
+      - finally apply resources to run on AWS <br>
+       ```
+       terraform apply --auto-approve
+       ```
+       <br>
+  2. Note: to copy **terraform.tfstate** from local to s3 bucket 
+    - ```
+      terraform init --migrate-state
+      ```
 
 ***
-## CI/CD (jenkins + Github )
-1. Trigger pipeline on GitHub push.
-    - We will use the **GitHub plugin** for Jenkins to create a webhook and enable Jenkins to listen for push events from GitHub,Upon a push  event, the pipeline will be triggered to run the necessary build, tests, and deployment tasks.
-    - Step 1: Install the GitHub Plugin in Jenkins.
-    - Step 2: Configure Jenkins to Connect with GitHub.
-    - Step 3: Set Up GitHub Webhook in GitHub repository.
+* Ansible Automate Configuraions on ec2 instances (jenkins, sonarqube, vault).
+  1. Make sure :
+    - Your Ansible control node has access to your EC2 instances (via SSH).
+    - You have updated your inventory file (instances) with the ip add of three instances.
+    - ansible.cfg contained required configurations.
+  2. to install any playbook within ansible dir
+  ```
+  ansible-playbook -i ./instances <playbook-name.yaml>
+  ```
+  - **Note** : if the  playbook including vault-vars.yaml 
+  ```
+  ansible-playbook -i ./instances <playbook-name.yaml> --ask-vault-pass
+  ```
+  3. ✅ After running these playbooks, Jenkins, SonarQube, and Vault will be ready, and Jenkins will be able to securely retrieve secrets from Vault to use in CI/CD pipeline stages.
+***
+*  CI/CD Pipeline Setup Instructions.
+  1. Prerequisites:
+    - Jenkins server (pre-installed via Ansible)
+    - GitHub repository access.
+    - Docker, AWS CLI, and sonar-scanner installed on Jenkins server.
+    - Vault and SonarQube configured.
+    - Amazon ECR and EKS set up and accessible.
+    - Helm charts prepared for deployment.
+  2. Add webhooks on github repo to jenkins be automatically build jenkinsfile when any changes push to github.
+  3. The pipeline handles the following stages:
 
-2. Create Jenkinsfile and attach it to ec2 jenkins.
+    -  ✅ Run Unit Tests
+
+    - 🔍 Static Code Analysis with SonarQube
+
+    -  🐳 Build Docker Image
+
+    - 🔐 Fetch AWS Credentials from Vault
+
+    - 🚀 Push Image to Amazon ECR
+
+    - ⛵ Deploy to EKS using Helm
+***
+* Kubernetes Setup Instructions.
+  1. Make sure kubectl is connected to the EKS Cluster using the appropriate kubeconfig file.
+  ```
+  aws eks update-kubeconfig --region us-east-2 --name eks
+  ```
+  2. Use Helm to install each microservice.
+  3. using namespaces => (dev, staging, prod)
+    - ex: 
+    1. ```
+        helm list --namespace prod
+      ```
+    2. ```
+      kubectl get svc -n prod
+       ```
+  4. Apply Basic RBAC and Network Policies : ADD rbac.yaml within helm/templates.
+  5. Enable Horizontal Pod Autoscaling (HPA) : ADD hpa.yaml within helm/templates.
+    - Each microservice is configured with resource requests and limits in its Kubernetes Deployment manifest to ensure efficient scheduling and cluster stability.
+  6. After that for testing app: copy url when run ```kubectl get svc -n prod``` and run it on browser.
+  ![PHP DevOps](./project.PNG)
+
+***
+* Security Implementation
+  1.  IAM Roles with Least Privilege
+    - Create dedicated IAM Roles for each service (Jenkins, EKS Nodes, EC2 instances) following the principle of least privilege.
+      1. jenkins EC2 Instance: Attach an IAM instance profile that allows access to ECR, EKS, and Vault.
+      2. EKS Worker Nodes: Use IAM instance profiles to grant access to AWS resources.
+      3. Kubernetes Pods: For fine-grained security, configure IRSA (IAM Roles for Service Accounts) to give specific pods access to AWS services securely, without sharing credentials.
+  2. Secrets Management via Vault
+    - using Secret engine KV1 that use credentials inside /secret
+    - Add secrets such as SonarQube credentials and AWS credentials
+    - Create a Vault policy to restrict access to specific paths.
+    - Integrate Jenkins with Vault using the Vault plugin.
+    - This ensures secrets are never hardcoded into code or Helm charts and are managed securely with access control.
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+ 
